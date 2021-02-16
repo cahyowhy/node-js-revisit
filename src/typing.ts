@@ -1,5 +1,5 @@
 import { ParamsDictionary } from "express-serve-static-core";
-import { Request, RequestHandler} from "express";
+import { Request, RequestHandler } from "express";
 
 export type ReqQueryOpt = {
     limit?: number,
@@ -12,6 +12,16 @@ export type ReqQuery = {
     options?: ReqQueryOpt
 };
 
-export type TRequest<T> = Request<ParamsDictionary, any, T, ReqQuery>;
+export interface TRequest<T = void> extends Request<ParamsDictionary, any, T, ReqQuery> {
+    user?: any
+};
 
 export type TReqHandler<T> = RequestHandler<ParamsDictionary, any, T, ReqQuery, any>;
+
+export type ResponseSend<T = void> = {
+    success: Boolean,
+    message?: string,
+    data?: T | T[],
+    token?: string,
+    httpStatus?: number
+};

@@ -9,6 +9,12 @@ export interface IUser extends Document {
     birthDate: Date
 }
 
+export interface ILoginUser {
+    username?: string,
+    email?: string,
+    password?: string,
+}
+
 const UserSchema = new Schema({
     email: { type: String, required: true },
     firstName: { type: String, required: true },
