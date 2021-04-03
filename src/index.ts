@@ -4,6 +4,7 @@ import DatabaseConnection from './config/DatabaseConnection';
 import router from './route';
 import { errorHandler } from './middleware';
 import logger from './config/logger';
+import ajv from './config/ajv';
 
 require('dotenv').config();
 
@@ -18,7 +19,7 @@ DatabaseConnection.setup().then(() => {
   app.use(express.json());
   app.use(cookieParser());
   app.use(express.urlencoded({ extended: false }));
-  app.use('/', router(logger));
+  app.use('/', router(logger, ajv));
   app.use(errorHandler);
 }).catch((e) => {
   logger.log({ level: 'error', message: e.toString() });

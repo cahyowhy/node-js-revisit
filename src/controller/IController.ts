@@ -8,7 +8,8 @@ export type ReqQuery = {
   skip?: number,
   limit?: number,
   filter?: any,
-  fields?: string | Array<string>
+  fields?: string | Array<string>,
+  sort?: any,
 };
 
 export type TReqHandler = RequestHandler<ParamsDictionary, any,

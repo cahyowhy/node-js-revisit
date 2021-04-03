@@ -1,7 +1,13 @@
 import winston from 'winston';
 import bcrypt from 'bcrypt';
 import { Response } from 'express';
-import User, { IUser } from '../model/user';
+import { Ajv } from 'ajv';
+import User, {
+  IUser,
+  jsonSchema,
+  jsonUpdateSchema,
+  loginJsonSchema,
+} from '../model/user';
 import BaseController from './BaseController';
 import { TReqHandler } from './IController';
 import { generateAccessToken, generateRefreshToken } from '../util';
@@ -18,17 +24,24 @@ export type UserMapRefreshToken = {
 
 export const USER_REFRESH_TOKEN: UserMapRefreshToken = {};
 export default class UserController extends BaseController<IUser> {
-  constructor(public logger: winston.Logger) {
-    super(logger, User);
+  constructor(public logger: winston.Logger, public ajv: Ajv,
+    public loginValidator = ajv.compile(loginJsonSchema)) {
+    super(logger, ajv, User, ajv.compile(jsonSchema), ajv.compile(jsonUpdateSchema));
   }
 
   create: TReqHandler = async (req, res, next) => {
     try {
-      const param = req.body;
-      param.password = await bcrypt.hash(param.password, await bcrypt.genSalt(10));
-      const result = await this.model.create(param);
+      if (this.validator(req.body)) {
+        const param = req.body;
+        delete param.type;
 
-      return res.send({ data: result });
+        param.password = await bcrypt.hash(param.password, await bcrypt.genSalt(10));
+        const result = await this.model.create(param);
+
+        return res.send({ data: result });
+      }
+
+      return res.status(400).send(this.validator.errors);
     } catch (e) {
       this.logger.log({ level: 'error', message: e.toString() });
 
@@ -38,18 +51,14 @@ export default class UserController extends BaseController<IUser> {
 
   authUser: TReqHandler = async (req, res, next) => {
     try {
-      if (!(req.body && req.body.password)) {
-        return res.status(400).send({ message: 'Password is not present' });
+      if (!this.loginValidator(req.body)) {
+        return res.status(400).send(this.loginValidator.errors);
       }
 
       const filter: any = {};
 
       if (req.body && req.body.email) filter.email = req.body.email;
       if (req.body && req.body.username) filter.username = req.body.username;
-
-      if (!Object.keys(filter).length) {
-        return res.status(400).send({ message: 'Username or Email is not present' });
-      }
 
       const users = await this.model.find(filter, undefined, { lean: true, limit: 1 });
 

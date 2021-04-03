@@ -1,12 +1,13 @@
 import winston from 'winston';
 import { Router } from 'express';
+import { Ajv } from 'ajv';
 import UserController from '../controller/UserController';
 import { authenticateAccessToken, queryParseFilter } from '../middleware';
 
 const router = Router();
 
-export default (logger: winston.Logger) => {
-  const userController = new UserController(logger);
+export default (logger: winston.Logger, ajv: Ajv) => {
+  const userController = new UserController(logger, ajv);
 
   router.post('/api/users', userController.create);
   router.put('/api/users/:id', authenticateAccessToken, userController.update);

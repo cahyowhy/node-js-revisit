@@ -45,7 +45,6 @@ export const authenticateAccessToken: TReqHandler = async (req, res, next) => {
 
   if (authHeader) {
     const token = authHeader.split(' ')[1];
-
     const promiseJwt = new Promise((resolve, reject) => {
       jwt.verify(token, (process.env.JWT_SECRET as string), (err, user) => {
         if (err) reject(err);
@@ -55,9 +54,7 @@ export const authenticateAccessToken: TReqHandler = async (req, res, next) => {
     });
 
     try {
-      const user = await promiseJwt;
-
-      (req as any).user = user;
+      (req as any).user = await promiseJwt;
 
       return next();
     } catch (e) {

@@ -26,7 +26,8 @@
     ],
   },
   "include": [
-    "./src/**/*.ts"
+    "./src/**/*.ts",
+    "./seed/**/*.ts",
   ],
   "exclude": [
     "./node_modules/"

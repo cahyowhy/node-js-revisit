@@ -6,7 +6,7 @@ export interface IBook extends IModel {
   author: string,
   sheet: number,
   introduction: string,
-  date_of_issue: Date
+  dateOffIssue: Date
 }
 
 const BookSchema = new Schema({
@@ -14,7 +14,33 @@ const BookSchema = new Schema({
   author: { type: String, required: true },
   sheet: { type: Number, required: true },
   introduction: { type: String },
-  date_of_issue: Date,
+  dateOffIssue: Date,
 });
+
+const properties = {
+  title: { type: 'string' },
+  author: { type: 'string' },
+  sheet: { type: 'number' },
+  introduction: { type: 'string' },
+  dateOffIssue: { type: 'string', format: 'date-time' },
+};
+
+export const jsonUpdateSchema = {
+  type: 'object',
+  properties,
+  oneOf: ['title', 'author', 'sheet', 'introduction', 'dateOffIssue']
+    .map((key) => ({ required: [key] })),
+};
+
+export const jsonSchema = {
+  type: 'object',
+  properties,
+  required: [
+    'title',
+    'author',
+    'sheet',
+  ],
+  additionalProperties: false,
+};
 
 export default model<IBook>('books', BookSchema);

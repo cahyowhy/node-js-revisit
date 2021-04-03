@@ -1,10 +1,12 @@
 import winston from 'winston';
 import { Model, Document } from 'mongoose';
+import { Ajv, ValidateFunction } from 'ajv';
 import IController, { TReqHandler } from './IController';
 import Constant from '../constant';
 
 export default abstract class BaseController<T extends Document> implements IController {
-  constructor(public logger: winston.Logger, public model: Model<T>) { }
+  constructor(public logger: winston.Logger, public ajv: Ajv, public model: Model<T>,
+    public validator: ValidateFunction, public updateValidator: ValidateFunction) { }
 
   find: TReqHandler = async (req, res, next) => {
     try {
@@ -12,6 +14,7 @@ export default abstract class BaseController<T extends Document> implements ICon
         limit: req.query.limit || Constant.DEFAULT_LIMIT,
         skip: req.query.skip || 0,
         lean: true,
+        sort: req.query.sort || '-id',
       });
 
       return res.send({ data: results });
@@ -24,7 +27,7 @@ export default abstract class BaseController<T extends Document> implements ICon
 
   count: TReqHandler = async (req, res, next) => {
     try {
-      const result = await this.model.count(req.query.filter || {});
+      const result = await this.model.count(req.query.filter || {}).lean();
 
       return res.send({ data: result });
     } catch (e) {
@@ -36,9 +39,13 @@ export default abstract class BaseController<T extends Document> implements ICon
 
   create: TReqHandler = async (req, res, next) => {
     try {
-      const result = await this.model.create(req.body);
+      if (this.validator(req.body)) {
+        const result = await this.model.create(req.body);
 
-      return res.send({ data: result });
+        return res.send({ data: result });
+      }
+
+      return res.status(400).send(this.validator.errors);
     } catch (e) {
       this.logger.log({ level: 'error', message: e.toString() });
 
@@ -48,11 +55,15 @@ export default abstract class BaseController<T extends Document> implements ICon
 
   update: TReqHandler = async (req, res, next) => {
     try {
-      const filter: any = { _id: req.params.id };
-      const { body } = req as any;
-      const result = await this.model.updateOne(filter, body, { lean: true });
+      if (this.updateValidator(req.body)) {
+        const filter: any = { _id: req.params.id };
+        const { body } = req as any;
+        await this.model.updateOne(filter, body, { lean: true });
 
-      return res.send({ data: result });
+        return res.send({ message: 'update success' });
+      }
+
+      return res.status(400).send(this.updateValidator.errors);
     } catch (e) {
       this.logger.log({ level: 'error', message: e.toString() });
 
