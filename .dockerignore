@@ -1,7 +1,6 @@
 **/.classpath
 **/.dockerignore
-**/.env
-**/prod.env
+# **/.env
 **/.git
 **/.gitignore
 **/.project
@@ -18,7 +17,6 @@
 **/compose*
 **/Dockerfile*
 **/node_modules
-**/build
 **/npm-debug.log
 **/obj
 **/secrets.dev.yaml
