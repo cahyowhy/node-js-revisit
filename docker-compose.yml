@@ -2,7 +2,7 @@ version: '3.4'
 
 services:
   nodejsrevisit:
-    image: nodejsrevisit:1.0
+    image: nodejsrevisit:1.1
     build:
       context: .
       dockerfile: ./Dockerfile
